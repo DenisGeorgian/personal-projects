@@ -1,0 +1,144 @@
+#include <stdio.h>
+#include <Windows.h>
+typedef char ALIGN[16];
+union header {
+	struct {
+		size_t size;
+		size_t is_free;
+		header* next;
+	}node;
+	ALIGN stub;
+};
+typedef union header header_t;
+header_t* head;
+header_t* tail;
+header_t* get_free_memory(size_t size)
+{
+	header_t* header = head;
+	while (header)
+	{
+		if (header->node.size >= size && header->node.is_free)
+		{
+			header->node.is_free = 1;
+			return header;
+		}
+		header = header->node.next;
+	}
+	return NULL;
+}
+void* my_malloc(size_t size)
+{
+	if (!size)
+		return NULL;
+	void* block;
+	header_t* header;
+	header = get_free_memory(size);
+	if (header)
+	{
+		header->node.is_free = 1;
+		return (void*)(header + 1);
+	}
+	else
+	{
+		size_t total_size = sizeof(header_t) + size;
+		block = HeapAlloc(GetProcessHeap(), 0, total_size);
+		if (!block)
+			return NULL;
+		else
+		{
+			header = (header_t*)block;
+			header->node.is_free = 1;
+			header->node.size = size;
+			header->node.next = NULL;
+			if (!head)
+				head = header;
+			if (tail)
+				tail = header;
+			return (void*) (header + 1);
+		}
+	}
+	return NULL;
+}
+void* my_free(void* block)
+{
+	if (!block)
+		return NULL;
+	else
+	{
+		header_t* header = head;
+		while (header)
+		{
+			if (header->node.next == tail)
+				header->node.next = NULL, tail = header;
+			header = header->node.next;
+		}
+	}
+	return NULL;
+}
+void* my_calloc(size_t size, size_t snum)
+{
+	if (!size || !snum)
+		return NULL;
+	size_t total = size * snum;
+	void* block;
+	block = my_malloc(total);
+	if (!block)
+		return NULL;
+	else
+	{
+		memset(block, 0, total);
+		return block;
+	}
+	return NULL;
+}
+void* my_realloc(void* block, size_t size)
+{
+	if (!block || !size)
+		return NULL;
+	header_t* header = (header_t*)block - 1;
+	void* rel = my_malloc(size);
+	if (header)
+	{
+		memcpy(rel, block, header->node.size);
+		my_free(block);
+	}
+	return rel;
+
+}
+int main()
+{
+	// Example 1: Using my_malloc
+	int* ptr = (int*)my_malloc(sizeof(int));
+	if (!ptr)
+		return 1;
+	else
+	{
+		*ptr = 45;
+		printf("The pointer value is: %d\n", *ptr);
+	}
+
+	// Example 2: Using my_calloc
+	double* array_int = (double*)my_calloc(5, sizeof(double));
+	if (!array_int)
+		return 1;
+	else
+	{
+		array_int[3] = 34;
+		for (int i = 0; i < 5; i++)
+			printf("%lf", array_int[i]);
+	}
+
+	// Example 3: Using my_realloc
+	printf("\n");
+	int* resized_ptr = (int*)my_realloc(ptr, 3 * sizeof(int));
+	if (!resized_ptr)
+		return NULL;
+	else
+	{
+		printf("The resized ptr is %d\n", resized_ptr[0]);
+		my_free(resized_ptr);
+	}
+	// Example 4: Using my_free
+	my_free(array_int);
+	return 0;
+}
