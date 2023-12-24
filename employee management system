@@ -1,0 +1,201 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <memory>
+#include <string.h>
+
+struct employee {
+    char first_name[20];
+    char second_name[20];
+    int age;
+    float salary;
+    char department[20];
+    char project[20];
+    char role[20];
+    char ID[20];
+    struct employee* next;
+};
+
+struct employee* list;
+void add() {
+    struct employee* employee_data = (struct employee*)malloc(sizeof(struct employee));
+    //printf("\nGreat! First, you need to introduce the first and second name and also the ID of the employee.\n");
+
+    printf("First name: ");
+    scanf(" %s", employee_data->first_name);
+
+    printf("Second name: ");
+    scanf(" %s", employee_data->second_name);
+
+    printf("The employee's age: ");
+    scanf(" %d", &employee_data->age);
+
+    printf("The employee's project: ");
+    scanf(" %s", employee_data->project);
+
+    printf("The employee's role: ");
+    scanf(" %s", employee_data->role);
+
+    printf("The employee's salary: ");
+    scanf(" %f", &employee_data->salary);
+
+    printf("The employee's department: ");
+    scanf(" %s", employee_data->department);
+
+    printf("The employee's ID: ");
+    scanf(" %s", employee_data->ID);
+    printf("The employee %s %s having the age of %d, working on the project %s having the role of %s with the ID %s, working in the %s department and having %.2f$ salary was successful added!\n", employee_data->first_name, employee_data->second_name, employee_data->age, employee_data->project, employee_data->role, employee_data->ID, employee_data->department, employee_data->salary);
+    employee_data->next = NULL;
+    if (list == NULL)
+        list = employee_data;
+    else
+    {
+        struct employee* new_employee = list;
+        while (new_employee->next)
+            new_employee = new_employee->next;
+        new_employee->next = employee_data;
+    }
+    printf("Do you want to quit the program? Use Q or q to exit and Y or y to continue ");
+    char c; 
+    scanf(" %c", &c);
+    if (c == 'q' || c == 'Q') {
+        return;
+    }
+    else
+        add();
+}
+
+void see() 
+{
+    if (list == NULL)
+    {
+        printf("The list of employees is empty. Cannot see the list!\n");
+        return;
+    }
+    struct employee* show = list;
+    while (show != NULL) 
+    {
+        printf("%s %s %s %d %s %s %s %.2f$\n", show->ID, show->first_name, show->second_name, show->age, show->project, show->role, show->department, show->salary);
+        show = show->next;
+    }
+}
+
+void salary(struct employee* em_update)
+{
+    printf("Please introduce the salary: \n");
+    scanf("%f", &em_update->salary);
+    printf("The salary was updated to %f:\n", em_update->salary);
+}
+void role(struct employee* em_update)
+{
+    printf("Please introduce the role of the employee:\n");
+    scanf("%s", &em_update->role);
+    printf("The role of the employee is: %s\n", em_update->role);
+}
+void department(struct employee* em_update)
+{
+    printf("Please introduce the department of the employee: \n");
+    scanf("%s", &em_update->department);
+    printf("The department of the employee is: %s\n", &em_update->department);
+}
+void update(struct employee** list)
+{
+    if (list == NULL)
+    {
+        printf("The employee list is empty. Cannot update!\n");
+        return;
+    }
+    while (1) {
+        printf("What is your choice?\n 1.----Salary   2.----Role   3.----Department   4.----Exit\n");
+        int choice; scanf(" %d", &choice);
+        printf("\nWhat's the ID of the employee?");
+        struct employee* em_update = *list;
+        char id[20];
+        scanf(" %s", id);
+        while (strcmp(em_update->ID, id) != 0)
+            em_update = em_update->next;
+        switch (choice)
+        {
+        case 1:
+            salary(em_update);
+            break;
+        case 2:
+            role(em_update);
+            break;
+        case 3:
+            department(em_update);
+            break;
+        case 4:
+            return;
+        }
+    }
+}
+void delete_employee()
+{
+    if (list == NULL)
+    {
+        printf("The employee list is empty. You cannot delete! \n");
+        return;
+    }
+    struct employee* em_delete = list;
+    struct employee* previous_em = NULL;
+    printf("Please introde the id of the employee you want to delete ");
+    char id[20]; scanf(" %s", &id);
+    while (em_delete != NULL && strcmp(em_delete->ID, id) != 0)
+        previous_em = em_delete,  em_delete = em_delete->next;
+    if (em_delete == NULL)
+    {
+        printf("There is no employee with the ID %s ", id);
+        return;
+    }
+    else
+    {
+        if (previous_em == NULL)
+            list = em_delete->next;
+        else
+            previous_em->next = em_delete->next;
+    }
+    free(em_delete);
+    printf("The employee with the ID %s was successfully deleted!\n ", id);
+} 
+int main()
+{
+    char login[10] = "1234", hr[10], pass[10];
+    int ok = 0;
+    printf("Hello! Please introduce your username and the password! \n");
+    scanf(" %s", hr);
+    while (strcmp(login, pass) != 0) {
+        if (ok == 1)
+            printf("Please introduce the password! ");
+        scanf(" %s", pass); 
+        ok = 1;
+    }
+      printf("Hello, %s!\n", hr);
+    while (1) {
+        printf("What do you want to do?\n");
+        printf(" 1---Add Employee\n 2---Update Employee Status\n 3--Delete Employee\n 4---See the employees\n 5--Exit\n");
+        int DO;
+        printf("Your choice is: ");
+        scanf(" %d", &DO);
+        switch (DO)
+        {
+        case 1:
+           printf("Add Employee \n"),  add();
+            break;
+        case 2:
+            printf("Update employee data \n"), update(&list);
+            break;
+        case 3:
+            printf("Delete Employee data \n"), delete_employee();
+            break;
+        case 4:
+            printf("Display all employees \n"), see();
+            break;
+        case 5:
+            printf("Goodbye %s! \n", hr);
+            return 1;
+        default:
+            printf("Invalid option, please introduce a value from 1-5.\n");
+        }
+        }
+    return 0;
+}
